@@ -1,0 +1,332 @@
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=yes"/>
+    <link href="/main.css" rel="stylesheet" type="text/css">
+    <link href="/codehighlight.css" rel="stylesheet" type="text/css">
+    <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Atom feed">
+    <link rel="shortcut icon" href="/images/favicon.png">
+    <title></title>
+</head>
+<body>
+  <div class="content">
+  <h3>5 最长回文子串</h3>
+
+<p><strong>输入：</strong>s = "babad"
+<strong>输出：</strong>"bab"
+<strong>解释：</strong>"aba" 同样是符合题意的答案。</p>
+
+<p>动态规划，</p>
+
+<p>边界值：</p>
+
+<p>bool[i][i] = true;</p>
+
+<p>转移条件：</p>
+
+<p>$$ bool[i][j] =ss</p>
+
+<div class="codehilite">
+<pre><span></span><code><span class="kd">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+        <span class="kd">public</span> <span class="n">String</span> <span class="nf">longestPalindrome</span><span class="p">(</span><span class="n">String</span> <span class="n">s</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">int</span> <span class="n">len</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="na">length</span><span class="p">();</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">len</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">s</span><span class="p">;</span>
+            <span class="kt">char</span><span class="o">[]</span> <span class="n">ch</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="na">toCharArray</span><span class="p">();</span>
+            <span class="kt">boolean</span><span class="o">[][]</span> <span class="n">bool</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">boolean</span><span class="o">[</span><span class="n">len</span><span class="o">][</span><span class="n">len</span><span class="o">]</span><span class="p">;</span>
+            <span class="c1">//初始化bool  每个单个字符均为回文</span>
+            <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">len</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">){</span>
+                <span class="n">bool</span><span class="o">[</span><span class="n">i</span><span class="o">][</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="kt">int</span> <span class="n">maxlen</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+            <span class="kt">int</span> <span class="n">begin</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+            <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">L</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span><span class="n">L</span> <span class="o">&lt;</span> <span class="n">len</span><span class="p">;</span><span class="n">L</span><span class="o">++</span><span class="p">){</span>
+                <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">len</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">){</span>
+                    <span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="n">L</span><span class="o">+</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+                    <span class="k">if</span><span class="p">(</span><span class="n">j</span><span class="o">&gt;</span><span class="n">len</span><span class="p">)</span>
+                        <span class="k">break</span><span class="p">;</span>
+                    <span class="k">if</span><span class="p">(</span><span class="n">ch</span><span class="o">[</span><span class="n">i</span><span class="o">]!=</span><span class="n">ch</span><span class="o">[</span><span class="n">j</span><span class="o">]</span><span class="p">){</span>
+                        <span class="n">bool</span><span class="o">[</span><span class="n">i</span><span class="o">][</span><span class="n">j</span><span class="o">]</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+                    <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">j</span><span class="o">-</span><span class="n">i</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">){</span>
+                            <span class="n">bool</span><span class="o">[</span><span class="n">i</span><span class="o">][</span><span class="n">j</span><span class="o">]</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+                        <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+                            <span class="n">bool</span><span class="o">[</span><span class="n">i</span><span class="o">][</span><span class="n">j</span><span class="o">]</span> <span class="o">=</span> <span class="n">bool</span><span class="o">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">][</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="o">]</span><span class="p">;</span>
+                        <span class="p">}</span>
+                    <span class="p">}</span>
+                    <span class="k">if</span><span class="p">(</span><span class="n">bool</span><span class="o">[</span><span class="n">i</span><span class="o">][</span><span class="n">j</span><span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="n">maxlen</span> <span class="o">&lt;</span> <span class="n">j</span><span class="o">-</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">){</span>
+                        <span class="n">begin</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+                        <span class="n">maxlen</span> <span class="o">=</span> <span class="n">L</span><span class="p">;</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="k">return</span> <span class="n">s</span><span class="p">.</span><span class="na">substring</span><span class="p">(</span><span class="n">begin</span><span class="p">,</span><span class="n">begin</span><span class="o">+</span><span class="n">maxlen</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</code></pre>
+</div>
+
+<h3>883 三维形体投影面积</h3>
+
+<p>在?n x n?的网格?grid?中，我们放置了一些与 x，y，z 三轴对齐的?1 x 1 x 1?立方体。</p>
+
+<p>每个值?v = grid[i][j]?表示 v?个正方体叠放在单元格?(i, j)?上。</p>
+
+<p>现在，我们查看这些立方体在 xy?、yz?和 zx?平面上的投影。</p>
+
+<p>投影?就像影子，将 三维 形体映射到一个 二维 平面上。从顶部、前面和侧面看立方体时，我们会看到“影子”。</p>
+
+<p>返回 所有三个投影的总面积 。</p>
+
+<p>示例 1：</p>
+
+<p>输入：[[1,2],[3,4]]
+输出：17
+解释：这里有该形体在三个轴对齐平面上的三个投影(“阴影部分”)。</p>
+
+<div class="codehilite">
+<pre><span></span><code><span class="kd">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="nf">projectionArea</span><span class="p">(</span><span class="kt">int</span><span class="o">[][]</span> <span class="n">grid</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">lenx</span> <span class="o">=</span> <span class="n">grid</span><span class="p">.</span><span class="na">length</span><span class="p">;</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">lenx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="c1">//统计面积</span>
+        <span class="kt">int</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">z</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+        <span class="c1">//通过数组来存储每行每列的最大值  在计算结束后需要重新遍历获取总和</span>
+        <span class="kt">int</span><span class="o">[]</span> <span class="n">countX</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="o">[</span><span class="n">lenx</span><span class="o">]</span><span class="p">;</span>
+        <span class="kt">int</span><span class="o">[]</span> <span class="n">countY</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="o">[</span><span class="n">lenx</span><span class="o">]</span><span class="p">;</span>
+        <span class="c1">//遍历grid 获取z 及countX countY</span>
+        <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">lenx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">){</span>
+            <span class="n">countX</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">grid</span><span class="o">[</span><span class="n">i</span><span class="o">][</span><span class="mi">0</span><span class="o">]</span><span class="p">;</span>
+            <span class="n">countY</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">grid</span><span class="o">[</span><span class="mi">0</span><span class="o">][</span><span class="n">i</span><span class="o">]</span><span class="p">;</span>
+            <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span><span class="o">&lt;</span><span class="n">lenx</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">){</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">grid</span><span class="o">[</span><span class="n">i</span><span class="o">][</span><span class="n">j</span><span class="o">]!=</span><span class="mi">0</span><span class="p">){</span>
+                    <span class="n">z</span><span class="o">++</span><span class="p">;</span>
+                <span class="p">}</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">countX</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">&lt;</span> <span class="n">grid</span><span class="o">[</span><span class="n">i</span><span class="o">][</span><span class="n">j</span><span class="o">]</span><span class="p">){</span>
+                    <span class="n">countX</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">grid</span><span class="o">[</span><span class="n">i</span><span class="o">][</span><span class="n">j</span><span class="o">]</span><span class="p">;</span>
+                <span class="p">}</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">countY</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">&lt;</span> <span class="n">grid</span><span class="o">[</span><span class="n">j</span><span class="o">][</span><span class="n">i</span><span class="o">]</span><span class="p">){</span>
+                    <span class="n">countY</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">grid</span><span class="o">[</span><span class="n">j</span><span class="o">][</span><span class="n">i</span><span class="o">]</span><span class="p">;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">z</span><span class="p">;</span>
+        <span class="n">sum</span> <span class="o">+=</span> <span class="n">Arrays</span><span class="p">.</span><span class="na">stream</span><span class="p">(</span><span class="n">countX</span><span class="p">).</span><span class="na">sum</span><span class="p">();</span>
+        <span class="n">sum</span> <span class="o">+=</span> <span class="n">Arrays</span><span class="p">.</span><span class="na">stream</span><span class="p">(</span><span class="n">countY</span><span class="p">).</span><span class="na">sum</span><span class="p">();</span>
+        <span class="k">return</span> <span class="n">sum</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>由于通过数组来对每行每列的最大值进行存储，因此在最终计算时需要重新遍历两个数组得到最终结果。而未用到变量x、y，现用xlabel，ylabel 来作为临时变量存储最大值，并在内层循环结束后将结果累加到x、y中。代码如下：</p>
+
+<div class="codehilite">
+<pre><span></span><code><span class="kd">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="nf">projectionArea</span><span class="p">(</span><span class="kt">int</span><span class="o">[][]</span> <span class="n">grid</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">lenx</span> <span class="o">=</span> <span class="n">grid</span><span class="p">.</span><span class="na">length</span><span class="p">;</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">lenx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="kt">int</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">z</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+        <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">lenx</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">){</span>
+            <span class="kt">int</span> <span class="n">xlabel</span><span class="o">=</span><span class="n">grid</span><span class="o">[</span><span class="n">i</span><span class="o">][</span><span class="mi">0</span><span class="o">]</span><span class="p">,</span><span class="n">ylabel</span> <span class="o">=</span> <span class="n">grid</span><span class="o">[</span><span class="mi">0</span><span class="o">][</span><span class="n">i</span><span class="o">]</span><span class="p">;</span>
+            <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span><span class="o">&lt;</span><span class="n">lenx</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">){</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">grid</span><span class="o">[</span><span class="n">i</span><span class="o">][</span><span class="n">j</span><span class="o">]!=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="p">{</span>
+                    <span class="n">z</span><span class="o">++</span><span class="p">;</span>
+                <span class="p">}</span>
+                <span class="n">xlabel</span> <span class="o">=</span> <span class="n">Math</span><span class="p">.</span><span class="na">max</span><span class="p">(</span><span class="n">xlabel</span><span class="p">,</span><span class="n">grid</span><span class="o">[</span><span class="n">i</span><span class="o">][</span><span class="n">j</span><span class="o">]</span><span class="p">);</span>
+                <span class="n">ylabel</span> <span class="o">=</span> <span class="n">Math</span><span class="p">.</span><span class="na">max</span><span class="p">(</span><span class="n">ylabel</span><span class="p">,</span><span class="n">grid</span><span class="o">[</span><span class="n">j</span><span class="o">][</span><span class="n">i</span><span class="o">]</span><span class="p">);</span>
+            <span class="p">}</span>
+            <span class="n">x</span> <span class="o">+=</span> <span class="n">xlabel</span><span class="p">;</span>
+            <span class="n">y</span> <span class="o">+=</span> <span class="n">ylabel</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="o">+</span><span class="n">z</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<h4><a href="https://leetcode-cn.com/problems/random-pick-index/">398. 随机数索引</a></h4>
+
+<p>给你一个可能含有 重复元素 的整数数组 nums ，请你随机输出给定的目标数字 target 的索引。你可以假设给定的数字一定存在于数组中。</p>
+
+<p>实现 Solution 类：</p>
+
+<p>Solution(int[] nums) 用数组 nums 初始化对象。
+int pick(int target) 从 nums 中选出一个满足 nums[i] == target 的随机索引 i 。如果存在多个有效的索引，则每个索引的返回概率应当相等。
+ </p>
+
+<p>示例：</p>
+
+<p>输入
+["Solution", "pick", "pick", "pick"]
+[[[1, 2, 3, 3, 3]], [3], [1], [3]]
+输出
+[null, 4, 0, 2]</p>
+
+<p>解释
+Solution solution = new Solution([1, 2, 3, 3, 3]);
+solution.pick(3); // 随机返回索引 2, 3 或者 4 之一。每个索引的返回概率应该相等。
+solution.pick(1); // 返回 0 。因为只有 nums[0] 等于 1 。
+solution.pick(3); // 随机返回索引 2, 3 或者 4 之一。每个索引的返回概率应该相等。</p>
+
+<div class="codehilite">
+<pre><span></span><code><span class="c1">//int p 作为标点在该位置开始每次的遍历，循环遍历数组</span>
+<span class="kd">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="o">[]</span><span class="n">nums</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">p</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="kd">public</span> <span class="nf">Solution</span><span class="p">(</span><span class="kt">int</span><span class="o">[]</span> <span class="n">nums</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="na">nums</span> <span class="o">=</span> <span class="n">nums</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">pick</span><span class="p">(</span><span class="kt">int</span> <span class="n">target</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">nums</span><span class="p">.</span><span class="na">length</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">){</span>
+            <span class="n">p</span><span class="o">++</span><span class="p">;</span>
+            <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="o">%</span><span class="p">(</span><span class="n">nums</span><span class="p">.</span><span class="na">length</span><span class="p">);</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">nums</span><span class="o">[</span><span class="n">p</span><span class="o">]</span> <span class="o">!=</span> <span class="n">target</span><span class="p">){</span>
+                <span class="k">continue</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="k">return</span> <span class="n">p</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="cm">/** * Your Solution object will be instantiated and called as such: * Solution obj = new Solution(nums); * int param_1 = obj.pick(target); */</span>
+</code></pre>
+</div>
+
+<p>官方题解1：哈希表</p>
+
+<div class="codehilite">
+<pre><span></span><code><span class="kd">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+    <span class="n">Map</span><span class="o">&lt;</span><span class="n">Integer</span><span class="p">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">pos</span><span class="p">;</span>
+    <span class="n">Random</span> <span class="n">random</span><span class="p">;</span>
+
+    <span class="kd">public</span> <span class="nf">Solution</span><span class="p">(</span><span class="kt">int</span><span class="o">[]</span> <span class="n">nums</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;</span><span class="n">Integer</span><span class="p">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Ineger</span><span class="o">&gt;&gt;</span><span class="p">();</span>
+        <span class="n">random</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Random</span><span class="p">();</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nums</span><span class="p">.</span><span class="na">length</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">pos</span><span class="p">.</span><span class="na">putIfAbsent</span><span class="p">(</span><span class="n">nums</span><span class="o">[</span><span class="n">i</span><span class="o">]</span><span class="p">,</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span><span class="p">());</span>
+            <span class="n">pos</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">nums</span><span class="o">[</span><span class="n">i</span><span class="o">]</span><span class="p">).</span><span class="na">add</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">pick</span><span class="p">(</span><span class="kt">int</span> <span class="n">target</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">List</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">pos</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">target</span><span class="p">);</span>
+        <span class="k">return</span> <span class="n">indices</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">random</span><span class="p">.</span><span class="na">nextInt</span><span class="p">(</span><span class="n">indices</span><span class="p">.</span><span class="na">size</span><span class="p">()));</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>*复杂度分析</p>
+
+<p>时间复杂度：初始化为 O(n)，pick 为 O(1)，其中 n 是nums 的长度。</p>
+
+<p>空间复杂度：O(n)O(n)。我们需要 O(n)O(n) 的空间存储 nn 个下标。*</p>
+
+<p>官方题解2：水塘抽样</p>
+
+<div class="codehilite">
+<pre><span></span><code><span class="kd">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="o">[]</span><span class="n">nums</span><span class="p">;</span>
+    <span class="n">Random</span> <span class="n">random</span><span class="p">;</span>
+    <span class="kd">public</span> <span class="nf">Solution</span><span class="p">(</span><span class="kt">int</span><span class="o">[]</span> <span class="n">nums</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="na">nums</span> <span class="o">=</span> <span class="n">nums</span><span class="p">;</span>
+        <span class="n">random</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Random</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">pick</span><span class="p">(</span><span class="kt">int</span> <span class="n">target</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">ans</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">cnt</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">nums</span><span class="p">.</span><span class="na">length</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">){</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">nums</span><span class="o">[</span><span class="n">i</span><span class="o">]==</span><span class="n">target</span><span class="p">){</span>
+                <span class="n">cnt</span><span class="o">++</span><span class="p">;</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">random</span><span class="p">.</span><span class="na">nextInt</span><span class="p">(</span><span class="n">cnt</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">ans</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">ans</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<h4><a href="https://leetcode-cn.com/problems/linked-list-random-node/">382. 链表随机节点</a></h4>
+
+<p>给你一个单链表，随机选择链表的一个节点，并返回相应的节点值。每个节点 被选中的概率一样 。</p>
+
+<p>实现 Solution 类：</p>
+
+<p>Solution(ListNode head) 使用整数数组初始化对象。
+int getRandom() 从链表中随机选择一个节点并返回该节点的值。链表中所有节点被选中的概率相等。</p>
+
+<div class="codehilite">
+<pre><span></span><code><span class="kd">class</span> <span class="nc">Solution</span> <span class="p">{</span>
+
+    <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;</span><span class="p">();</span> 
+
+    <span class="n">Random</span> <span class="n">random</span><span class="p">;</span>
+
+    <span class="kd">public</span> <span class="nf">Solution</span><span class="p">(</span><span class="n">ListNode</span> <span class="n">head</span><span class="p">)</span> <span class="p">{</span>
+
+        <span class="k">while</span><span class="p">(</span><span class="n">head</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">){</span>
+
+            <span class="n">list</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">head</span><span class="p">.</span><span class="na">val</span><span class="p">);</span>
+
+            <span class="n">head</span> <span class="o">=</span> <span class="n">head</span><span class="p">.</span><span class="na">next</span><span class="p">;</span>
+
+        <span class="p">}</span>
+
+        <span class="n">random</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Random</span><span class="p">();</span>
+
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">getRandom</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">//水塘抽样</span>
+        <span class="kt">int</span> <span class="n">ans</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+        <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">list</span><span class="p">.</span><span class="na">size</span><span class="p">();</span> <span class="n">i</span><span class="o">++</span><span class="p">){</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="n">random</span><span class="p">.</span><span class="na">nextInt</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">){</span>
+
+                <span class="n">ans</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+
+            <span class="p">}</span>
+
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">list</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">ans</span><span class="p">);</span>
+        <span class="c1">//也可直接返回随机值</span>
+        <span class="k">return</span> <span class="n">list</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">random</span><span class="p">.</span><span class="na">nextInt</span><span class="p">(</span><span class="n">list</span><span class="p">.</span><span class="na">size</span><span class="p">()));</span>
+
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</code></pre>
+</div>
+
+  </div>
+</body>
+<!-- Global Site Tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-106796420-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments)};
+  gtag('js', new Date());
+  gtag('config', 'UA-106796420-1');
+</script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?2e8594e80b736182ce88fcd89a36402d";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+</html>
