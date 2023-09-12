@@ -8,20 +8,7 @@ body {
     display: block;
 }
 
-.title div {
-    display: block;
-    text-align: right;
-}
-
-
-div.date {
-    display: inline-block;
-    font-size: 80%;
-    color: darkgray;
-}
-
 .title {
-    padding:10px;
     cursor: pointer;
 }
 
@@ -48,4 +35,3 @@ li.title:hover {
     margin-left : 0;
     margin-right: 0;
 }
-
