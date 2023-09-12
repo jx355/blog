@@ -1,0 +1,423 @@
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=yes"/>
+    <link href="/blog/main.css" rel="stylesheet" type="text/css">
+    <link href="/blog/codehighlight.css" rel="stylesheet" type="text/css">
+    <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Atom feed">
+    <link rel="shortcut icon" href="/images/favicon.png">
+    <title></title>
+</head>
+<body>
+  <div class="content">
+  <h1>MySQL 进阶</h1>
+
+<p>MySQL 架构：</p>
+
+<p>连接层，</p>
+
+<p>服务层：分析器、优化器、执行器</p>
+
+<p>存储引擎层：可插拔式存储引擎，提供数据操作接口</p>
+
+<p>文件系统：持久化保存数据</p>
+
+<h2>1.存储引擎</h2>
+
+<div class="codehilite">
+<pre><span></span><code><span class="k">show</span> <span class="n">engines</span><span class="p">;</span>
+<span class="k">show</span> <span class="n">engine</span> <span class="n">innodb</span> <span class="n">status</span><span class="err">\</span><span class="k">G</span><span class="p">;</span> <span class="o">##</span> <span class="err">查看执行引擎状态</span>
+</code></pre>
+</div>
+
+<p>| Engine             | Support | Comment                                                        | Transactions | XA   | Savepoints |
+| ------------------ | ------- | -------------------------------------------------------------- | ------------ | ---- | ---------- |
+| MEMORY             | YES     | Hash based, stored in memory, useful for temporary tables      | NO           | NO   | NO         |
+| MRG<em>MYISAM         | YES     | Collection of identical MyISAM tables                          | NO           | NO   | NO         |
+| CSV                | YES     | CSV storage engine                                             | NO           | NO   | NO         |
+| FEDERATED          | NO      | Federated MySQL storage engine                                 | NULL         | NULL | NULL       |
+| PERFORMANCE</em>SCHEMA | YES     | Performance Schema                                             | NO           | NO   | NO         |
+| MyISAM             | YES     | MyISAM storage engine                                          | NO           | NO   | NO         |
+| InnoDB             | DEFAULT | Supports transactions, row-level locking, and foreign keys     | YES          | YES  | YES        |
+| BLACKHOLE          | YES     | /dev/null storage engine (anything you write to it disappears) | NO           | NO   | NO         |
+| ARCHIVE            | YES     | Archive storage engine                                         | NO           | NO   | NO         |</p>
+
+<h2>2.索引</h2>
+
+<p>B+tree index 支持顺序查找，同时由于数据都在叶子节点，使得在一页中可以获得更多的索引。</p>
+
+<p>Hash index 通过hash函数直接定位数据位置，等值查找效率高，但是不支持范围查询</p>
+
+<p>R-tree 空间索引是MyIsam一种特殊的索引，主要用于空间地理数据类型，通常使用较少</p>
+
+<p>Full-text  全文索引，通过倒排索引，快速匹配文档方式，类似于Solr，Lucene，ES</p>
+
+<h3>2.1 语法</h3>
+
+<div class="codehilite">
+<pre><span></span><code><span class="k">show</span> <span class="k">index</span> <span class="k">from</span> <span class="p">[</span><span class="k">table_name</span><span class="p">]</span>
+<span class="k">create</span> <span class="k">index</span> <span class="p">[</span><span class="n">index_name</span><span class="p">]</span> <span class="k">on</span> <span class="p">[</span><span class="k">table_name</span><span class="p">]([</span><span class="n">fiels</span><span class="p">,..]);</span>
+<span class="k">create</span> <span class="k">unique</span> <span class="k">index</span> <span class="p">[</span><span class="n">index_name</span><span class="p">]</span> <span class="k">on</span> <span class="p">[</span><span class="k">table_name</span><span class="p">]([</span><span class="n">fiels</span><span class="p">,..]);</span>
+<span class="k">drop</span> <span class="k">index</span> <span class="p">[</span><span class="n">index_name</span><span class="p">]</span> <span class="k">on</span> <span class="p">[</span><span class="k">table_name</span><span class="p">];</span>
+</code></pre>
+</div>
+
+<h3>2.2 性能分析</h3>
+
+<h4>2.2.1 查看服务器状态信息</h4>
+
+<div class="codehilite">
+<pre><span></span><code><span class="k">show</span> <span class="p">[</span><span class="k">session</span><span class="o">|</span><span class="k">global</span><span class="p">]</span> <span class="n">status</span> <span class="k">like</span> <span class="ss">&quot;Com_______&quot;</span><span class="p">;</span>
+</code></pre>
+</div>
+
+<p>| Variable<em>name | Value |
+| ------------- | ----- |
+| Com</em>binlog    | 0     |
+| Com<em>commit    | 268   |
+| Com</em>delete    | 6     |
+| Com<em>import    | 0     |
+| Com</em>insert    | 58    |
+| Com<em>repair    | 0     |
+| Com</em>revoke    | 0     |
+| Com<em>select    | 978   |
+| Com</em>signal    | 0     |
+| Com<em>update    | 75    |
+| Com</em>xa_end    | 0     |</p>
+
+<h4>2.2.2 慢查询日志</h4>
+
+<div class="codehilite">
+<pre><span></span><code><span class="k">show</span> <span class="n">variables</span> <span class="k">like</span> <span class="s1">&#39;slow_query_log&#39;</span><span class="p">;</span> <span class="o">#</span><span class="err">查看是否开启</span>
+<span class="o">#</span><span class="err">开启</span>  <span class="err">在</span><span class="n">cnf文件增加配置</span>
+<span class="n">slow_query_log</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">long_query_time</span><span class="o">=</span><span class="mi">2</span> <span class="o">#</span> <span class="err">慢查询日志时间过两秒就算</span>
+</code></pre>
+</div>
+
+<h4>2.2.3 profile</h4>
+
+<div class="codehilite">
+<pre><span></span><code><span class="k">select</span> <span class="o">@@</span><span class="n">have_profiling</span><span class="p">;</span> <span class="o">##</span><span class="err">查看是否支持</span><span class="n">profile</span>
+<span class="k">select</span> <span class="o">@@</span><span class="n">profiling</span><span class="p">;</span> <span class="o">#</span> <span class="err">查看是否开启</span><span class="n">profiling</span>
+<span class="k">set</span> <span class="n">profiling</span><span class="o">=</span><span class="mi">1</span><span class="p">;</span> <span class="o">#</span><span class="err">开启</span><span class="n">profiling开关</span>
+
+
+<span class="k">show</span> <span class="n">profiles</span><span class="p">;</span> 
+<span class="k">show</span> <span class="n">profile</span> <span class="k">for</span> <span class="n">query</span> <span class="p">[</span><span class="n">query_id</span><span class="p">];</span> <span class="o">#</span><span class="err">查看指定</span><span class="n">queryid</span> <span class="err">的</span><span class="n">sql执行耗时情况</span>
+<span class="k">show</span> <span class="n">profile</span> <span class="n">cpu</span> <span class="k">for</span> <span class="n">query</span> <span class="p">[</span><span class="n">query_id</span><span class="p">];</span> <span class="o">#</span><span class="err">查看指定</span><span class="n">queryid</span> <span class="err">的</span><span class="n">sql执行和cpu耗时情况</span>
+</code></pre>
+</div>
+
+<h4>2.2.4 explain</h4>
+
+<p>通过explain 可以查看执行计划，查看是否走索引，查表类型</p>
+
+<h3>2.3 使用</h3>
+
+<h4>2.3.1 最左前缀</h4>
+
+<p>在查询中，sql 对where、order by 会根据最左有限匹配原则进行索引匹配，若能找到索引，就通过索引查询</p>
+
+<p>如果跳过某一列，索引将失效 如果对索引中某一列存在计算或范围查询（&gt;,&lt;），索引也会失效(&gt;=和&lt;= 不会)</p>
+
+<h4>2.3.2 索引失效情况</h4>
+
+<p>对索引列进行计算会导致索引失效，对索引列 字符串不加引号存在隐式类型转换，导致索引失效。</p>
+
+<p>模糊查询如果只是尾模糊不会失效，头模糊会</p>
+
+<p>or 连接的查询 如果只有一个存在索引会索引失效</p>
+
+<p>如果mysql 评估不走索引比走索引更快，也不会走索引</p>
+
+<h3>2.4 SQL提示</h3>
+
+<h4>use index (建议使用)</h4>
+
+<p>select name from user use index(idx<em>use</em>name) where name = "qqq";</p>
+
+<h4>ignore index（忽略）</h4>
+
+<p>select name from user ignore index(idx<em>use</em>name) where name = "qqq";</p>
+
+<h4>force index（强制）</h4>
+
+<p>select name from user force index(idx<em>use</em>name) where name = "qqq";</p>
+
+<h3>2.5 前缀索引</h3>
+
+<div class="codehilite">
+<pre><span></span><code><span class="k">create</span> <span class="k">index</span> <span class="p">[</span><span class="n">index_name</span><span class="p">]</span> <span class="k">from</span> <span class="k">table</span><span class="p">(</span><span class="k">column</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="o">##</span> <span class="n">n为前缀索引长度</span>
+
+
+<span class="k">select</span> <span class="k">count</span><span class="p">(</span><span class="k">distinct</span> <span class="n">email</span><span class="p">)</span><span class="o">/</span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">from</span> <span class="k">user</span><span class="p">;</span>
+<span class="k">select</span> <span class="k">count</span><span class="p">(</span><span class="k">distinct</span> <span class="k">substring</span><span class="p">(</span><span class="n">email</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span><span class="o">/</span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">from</span> <span class="k">user</span><span class="p">;</span>
+</code></pre>
+</div>
+
+<h3>2.6 索引设计原则</h3>
+
+<ol>
+<li><p>针对于数据量较大，且查询比较频繁的表建立索引。</p></li>
+<li><p>针对于常作为查询条件 (where)、排序(order by)、分组 (group by) 操作的字段建立索引。</p></li>
+<li><p>尽量选择区分度高的列作为索引，尽量建立唯一索引，区分度越高，使用索引的效率越高。</p></li>
+<li><p>如果是字符串类型的字段，字段的长度较长，可以针对于字段的特点，建立前缀索引。</p></li>
+<li><p>尽量使用联合索引，减少单列索引，查询时，联合索引很多时候可以覆盖索引，节省存储空间，避免回表，提高查询效率。</p></li>
+<li><p>要控制索引的数量，索引并不是多多益善，索引越多，维护索引结构的代价也就越大，会影响增删改的效率。</p></li>
+<li><p>如果索列不能存储NULL值，请在创建表时使用NOT NULL约束它。当优化器知道每列是否包含NULL值时，它可以更好地确定哪个
+索引最有效地用于查询。</p></li>
+</ol>
+
+<h2>3.SQL优化</h2>
+
+<h3>3.1 插入数据</h3>
+
+<ul>
+<li><p>批量插入，将多条插入语句合并</p></li>
+<li><p>使用手动事务提交，避免每次提交事务导致的事务消耗。</p></li>
+<li><p>主键顺序插入，顺序插入的性能高于乱序插入</p></li>
+</ul>
+
+<p>大批量插入数据：</p>
+
+<p>如果一次性需要插入大批量数据，使用insert语句插入性能较低，此时可以使用MySQL数据库提供的 load 指令进行插入</p>
+
+<div class="codehilite">
+<pre><span></span><code><span class="o">#</span> <span class="err">客户端连接服务端时，加上参数</span> <span class="c1">--local-infile</span>
+<span class="n">mysql</span> <span class="c1">--local-infile -uroot -p</span>
+<span class="o">#</span> <span class="err">设置全局参数</span><span class="n">local_infile</span> <span class="err">为</span><span class="mi">1</span><span class="err">，开启从本地加载文件导入数据的开关</span>
+<span class="k">set</span> <span class="k">global</span> <span class="n">local_infile</span><span class="o">=</span><span class="mi">1</span><span class="p">;</span>
+<span class="o">#</span> <span class="err">执行</span><span class="n">load指令将准备好的数据</span><span class="err">，加载到表结构中</span>
+<span class="k">load</span> <span class="k">data</span> <span class="k">local</span> <span class="n">infile</span> <span class="s1">&#39;/root/sql1.log&#39;</span> <span class="k">into</span> <span class="k">table</span> <span class="s1">&#39;tb_user&#39;</span> <span class="n">fields</span> <span class="n">terminated</span> <span class="k">by</span> <span class="s1">&#39;,&#39;</span> <span class="n">lines</span> <span class="n">terminated</span> <span class="k">by</span> <span class="s1">&#39;\n&#39;</span><span class="p">;</span>
+</code></pre>
+</div>
+
+<h3>3.2 主键优化</h3>
+
+<ul>
+<li><p>数据组织方式
+表数据根据主键顺序组织存放</p></li>
+<li><p>页分裂
+页可以为空，也可以填充一半，也可以填充100%，每个页包含了2-N行数据（如果一行数据过大，会行溢出），根据主键排列</p></li>
+<li><p>页合并</p></li>
+</ul>
+
+<p>当删除一行记录时，实际上记录并未被物理删除，只是被标记，当页中删除的记录达到MERGE_THRESHOLD(默认为页的50%)，InnoDB会开始寻找最靠近的页（前后页）看是否合并来优化存储空间。</p>
+
+<p>通过顺序插入来避免页的分裂和合并操作，数据删除时先进行逻辑删除，在</p>
+
+<ul>
+<li><p>主键索引设计原则</p>
+
+<ul>
+<li><p>满足业务需求下，尽量降低主键长度</p></li>
+<li><p>插入数据时，尽量顺序插入，使用AUTO_INCREMENT自增主键</p></li>
+<li><p>尽量不要使用UUID或其他自然主键</p></li>
+</ul></li>
+</ul>
+
+<h3>3.3 order by 优化</h3>
+
+<ol>
+<li><p>using filesort 通过表的索引或全表扫描，读取满足条件数据行，在排序缓冲区进行排序操作</p></li>
+<li><p>using index 通过索引直接返回有序数据</p></li>
+</ol>
+
+<h3>3.4 group by 优化</h3>
+
+<p>使用索引提高效率</p>
+
+<h3>3.5 limit 优化</h3>
+
+<p>通过覆盖索引加子查询来优化查询效率</p>
+
+<div class="codehilite">
+<pre><span></span><code><span class="k">select</span> <span class="o">*</span> <span class="k">from</span> <span class="k">user</span> <span class="k">limit</span> <span class="mi">100000000</span><span class="p">,</span><span class="mi">10</span><span class="p">;</span>
+
+
+<span class="k">select</span> <span class="n">id</span> <span class="k">from</span> <span class="k">user</span> <span class="k">limit</span> <span class="mi">100000000</span><span class="p">,</span><span class="mi">10</span><span class="p">;</span>
+
+
+<span class="k">select</span> <span class="n">s</span><span class="p">.</span><span class="o">*</span> <span class="k">from</span> <span class="k">user</span><span class="p">,</span> <span class="p">(</span><span class="k">select</span> <span class="n">id</span> <span class="k">from</span> <span class="k">user</span> <span class="k">limit</span> <span class="mi">100000000</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span> <span class="n">a</span> <span class="k">where</span> <span class="k">user</span><span class="p">.</span><span class="n">id</span><span class="o">=</span><span class="n">a</span><span class="p">.</span><span class="n">id</span><span class="p">;</span>
+</code></pre>
+</div>
+
+<h3>3.6 count 优化</h3>
+
+<p>select count（*） from user；</p>
+
+<p>count() 是一个聚合函数，对返回数据集一行行判断，如果count 函数的参数不是NULL,累计值就加一，否则不加，最后返回累计值</p>
+
+<p>例如：count(*),count(1),count(字段),count(主键)</p>
+
+<p>count() 几种用法</p>
+
+<p>count（主键）</p>
+
+<p>Innodb引擎会遍历数据，对每一行主键值都取出来，返回给服务层，服务层拿到主键后，直接按行进行累加（主键不可能为Null）</p>
+
+<p>count（字段）</p>
+
+<p>若无not null 约束，则将每一行取出后服务层判断不为null后累加，若有not null 约束，则直接累加1</p>
+
+<p>count（1）</p>
+
+<p>Innodb引擎会遍历数据，但不取值，对返回的每一行，放一个数字1进去，直接按行进行累加</p>
+
+<p>count（*）</p>
+
+<p>Innodb 不会吧全部字段取出，而是专门做了优化，不取值，服务层直接按行进行累加</p>
+
+<p>按照效率排序的话，count(字段)&lt; count(主键 id)&lt; count(1)= count(*)，所以尽量使用 count（*）。</p>
+
+<h3>3.7 update 优化</h3>
+
+<p>在更新时根据索引进行更新，避免行锁升级成表锁。</p>
+
+<h2>4.锁</h2>
+
+<h3>4.1全局锁</h3>
+
+<p>在数据备份时，为了保证数据的一致性，需要对数据库进行加锁，来避免备份过程中数据的修改</p>
+
+<div class="codehilite">
+<pre><span></span><code><span class="n">flash</span> <span class="n">tables</span> <span class="k">with</span> <span class="k">read</span> <span class="k">lock</span><span class="p">;</span>
+<span class="n">mysqldump</span> <span class="o">-</span><span class="n">uroot</span> <span class="o">-</span><span class="n">p123456</span> <span class="n">itcast</span><span class="o">&gt;</span><span class="n">itcast</span><span class="p">.</span><span class="k">sql</span>   <span class="o">##</span><span class="err">命令行中执行</span>
+<span class="n">unlock</span> <span class="n">tables</span><span class="p">;</span>
+</code></pre>
+</div>
+
+<p>加全局锁在主库会使得业务无法进行，加在从库会导致从库在执行期间无法接收到来自主库的binlog，使得主从之间出现延迟。</p>
+
+<p>通过 --single-transaction 可以避免</p>
+
+<div class="codehilite">
+<pre><span></span><code>mysqldump --single-transaction -uroot -p123456 itcast&gt;itcast.sql <span class="c1">#在innodb 底层通过快照都来实现</span>
+</code></pre>
+</div>
+
+<h3>4.2 表锁</h3>
+
+<ul>
+<li>表级锁，每次操作锁住整张表，锁定粒度大，发生锁冲突的概率最高，并发度最低。 应用：MyISAM、InnoDB、DBD等存储引擎中。</li>
+</ul>
+
+<p>表级锁主要分为</p>
+
+<ol>
+<li><p>表锁</p>
+
+<ol>
+<li><p>表共享读锁 </p></li>
+<li><p>表独占写锁</p></li>
+</ol>
+
+<p>语法：</p>
+
+<ol>
+<li><p>加锁：locl tables 表名... read/write </p></li>
+<li><p>释放锁：unlock tables /客户端断开连接</p></li>
+</ol></li>
+<li><p>元数据锁</p>
+
+<p>MDL 加锁由系统自动控制，无需显示使用，主要作用是维护表元数据的数据一致性，在表上有事务活动时，无法对元数据进行写入操作。避免DML与DDL冲突，保证读写的正确性。</p>
+
+<p>| 对应SQL                                      | 锁类型                                   | 说明                                        |
+| ------------------------------------------ | ------------------------------------- | ----------------------------------------- |
+| lock tables xxx read/write                 | SHARED<em>READ</em>ONLY/SHARED<em>NO</em>READ<em>WRITE |                                           |
+| select、select ... lock in share mod        | SHARED</em>READ                           | 与SHARED<em>READ、SHARED</em>WRITE 兼容，与EXCLUSIVE互斥 |
+| insert、update、delete、select ... for update | SHARED<em>WRITE                          | 与SHARED</em>READ、SHARED_WRITE 兼容，与EXCLUSIVE互斥 |
+| alter table ...                            | EXCLUSIVE                             | 与其他的MDL互斥                                 |</p></li>
+</ol>
+
+<p>查看元数据锁</p>
+
+<p>select object<em>type,object</em>schema,object<em>name,lock</em>type,lock<em>duration from performance</em>schema.metadata_locks;</p>
+
+<ol start="3">
+<li>意向锁</li>
+</ol>
+
+<p>判断表是否有行锁及行锁类型判断能否加表锁，通过意向锁来判断是否有行锁</p>
+
+<p>1.意向共享锁(IS)</p>
+
+<p>与表锁共享锁兼容，与表锁排他锁互斥</p>
+
+<p>2.意向排他锁(IX)</p>
+
+<p>与表锁共享锁及排他锁互斥，意向锁之间不会互斥</p>
+
+<p>查看意向锁及行锁加锁情况</p>
+
+<p>select object<em>schema,object</em>name,index<em>name,lock</em>type,lock<em>mode,lock</em>data from performance<em>schema.data</em>locks;</p>
+
+<h3>4.3 行级锁</h3>
+
+<ul>
+<li>介绍</li>
+</ul>
+
+<p>行级锁，每次操作锁住对应的行数据。锁定粒度最小，发生锁冲突的概率最低，并发度最高。应用在InnoDB存储引擎中。</p>
+
+<p>InnoDB的数据时基于索引组织的，行锁是通过对索引上的索引项加锁来实现的，而不是对记录加的锁，对于行级锁，主要分为以下三类：</p>
+
+<ol>
+<li><p>行锁（Record lock）：锁定单个行记录的锁，防止其他事务对此进行update和delete。在RC、RR隔离级别下都支持</p></li>
+<li><p>间隙锁（Gap Lock）：锁定索引记录的间隙（不含该记录），确保索引记录间隙不变，防止其他事务在这个间隙进行insert，产生幻读。在RR隔离级别下都支持</p></li>
+<li><p>邻健锁（Next-Key lock）：行锁和间隙锁组合，同时锁住数据，并所著数据前面的间隙Gap。在RR隔离级别下支持</p></li>
+</ol>
+
+<h4>4.3.1行级锁</h4>
+
+<p>InnoDB实现了一下两种类型的行锁：</p>
+
+<ol>
+<li><p>共享锁（S）：允许一个事务去读一行，阻止其他事务获得相同数据集的排他锁</p></li>
+<li><p>排他锁（X）：允许其他排他锁的事务更新数据，阻止其他事务获得相同数据集的共享锁和排他锁。</p></li>
+</ol>
+
+<p>| SQL                          | 行锁类型 | 说明                    |
+| ---------------------------- | ---- | --------------------- |
+| INSERT...                    | 排他锁  | 自动加锁                  |
+| UPDATE...                    | 排他锁  | 自动加锁                  |
+| DELETE...                    | 排他锁  | 自动加锁                  |
+| SELECT(正常)                   | 不加锁  |                       |
+| SELECT ...LOCK IN SHARE MODE | 共享锁  | 手动加LOCK IN SHARE MODE |
+| SELECT ... FOR UPDATE        | 排他锁  | 手动加FOR UPDATE         |</p>
+
+<h4>4.3.2 间隙锁/邻键锁</h4>
+
+<p>默认情况下，InnoDB在REPEATABLE READ 事务隔离级别运行，InnoDB使用next_key锁进行搜索和索引扫描，防止幻读</p>
+
+<ol>
+<li><p>索引上的等值查询（唯一索引），给不存在的记录加锁是，优化为间隙锁</p></li>
+<li><p>索引上的等值查询（普通索引），向右遍历时最后一个值不满足查询需求时，next-key lock 退化为间隙锁。</p></li>
+<li><p>索引上的范围查询（唯一索引） 会访问到不满足条件的第一个值为止。</p></li>
+</ol>
+
+<p>注意：间隙锁唯一目的时防止其他事务插入间隙，间隙锁可以共存，一个事务采用的间隙锁不会组织另一个事务在同一间隙上采用间隙锁</p>
+
+  </div>
+</body>
+<!-- Global Site Tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-106796420-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments)};
+  gtag('js', new Date());
+  gtag('config', 'UA-106796420-1');
+</script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?2e8594e80b736182ce88fcd89a36402d";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+</html>
